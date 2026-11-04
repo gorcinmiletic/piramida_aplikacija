@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Interaktivni kalkulator i vežbe za pravilnu piramidu, sa rezultatima u tačnom obliku sa korenom.">
+<style>:root{color-scheme:light}</style>
+<title>Pravilna piramida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: školska sveska na kvadratiće; levo vrsta i skica, desno polja, ispod istorija. */
+:root{
+  --paper:#fcf6ef;--grid:#f0e8dc;--card:#fffdf9;--inset:#faf5ec;--line:#e6dfd2;
+  --ink:#102a4c;--muted:#5d6a7b;--navy:#12305a;--on-navy:#ffffff;
+  --coral:#e4694a;--teal:#0e9488;--amber:#e3ac1c;
+  --coral-soft:#f6a896;--teal-soft:#0e948833;--coral-fill:#e4694a33;--amber-fill:#e3ac1c3d;
+  --given:#cfe4fb;--given-line:#8db9e8;--done:#dff5dd;--done-line:#a4d8a2;--done-ink:#1d6b34;
+  --bad:#c7362b;--bad-soft:#fdecea;--warn-soft:#fff4d9;--warn-ink:#7a5600;--hover:#f0ebe0;
+  --display:"Space Grotesk","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f1a2b;--grid:#17243a;--card:#15233a;--inset:#101c30;--line:#2a3b57;
+  --ink:#e9eff8;--muted:#9fb0c6;--navy:#8fb8ee;--on-navy:#0c1727;
+  --coral:#f08467;--teal:#35c4b6;--amber:#f0c34a;
+  --coral-soft:#f08467;--teal-soft:#35c4b640;--coral-fill:#f0846740;--amber-fill:#f0c34a40;
+  --given:#1c3f68;--given-line:#3f6fa6;--done:#17452a;--done-line:#2f7a4a;--done-ink:#9fe3b1;
+  --bad:#ff8d80;--bad-soft:#47201d;--warn-soft:#42340f;--warn-ink:#f4d98a;--hover:#1e3049;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0f1a2b;--grid:#17243a;--card:#15233a;--inset:#101c30;--line:#2a3b57;
+  --ink:#e9eff8;--muted:#9fb0c6;--navy:#8fb8ee;--on-navy:#0c1727;
+  --coral:#f08467;--teal:#35c4b6;--amber:#f0c34a;
+  --coral-soft:#f08467;--teal-soft:#35c4b640;--coral-fill:#f0846740;--amber-fill:#f0c34a40;
+  --given:#1c3f68;--given-line:#3f6fa6;--done:#17452a;--done-line:#2f7a4a;--done-ink:#9fe3b1;
+  --bad:#ff8d80;--bad-soft:#47201d;--warn-soft:#42340f;--warn-ink:#f4d98a;--hover:#1e3049;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:400 15px/1.45 var(--display);
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+.tabs{display:inline-flex;align-self:flex-start;gap:4px;padding:5px;background:var(--card);border:1px solid var(--line);border-radius:14px}
+.tabs button{border:0;background:transparent;color:var(--muted);font:500 14px var(--display);padding:9px 18px;border-radius:10px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--navy);color:var(--on-navy)}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px}
+.eyebrow{margin:0;font:400 12px var(--mono);letter-spacing:.24em;text-transform:uppercase;color:var(--coral)}
+h1{margin:2px 0 0;font-size:clamp(34px,5vw,50px);line-height:1.05;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.sub{margin:6px 0 0;color:var(--muted);max-width:65ch}
+.sub code,.mono{font-family:var(--mono);font-size:.93em}
+.btn{display:inline-flex;align-items:center;gap:8px;font:500 14px var(--display);padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+.btn.primary:hover{opacity:.9;background:var(--navy)}
+.btn.accent{background:var(--coral);border-color:var(--coral);color:var(--on-navy)}
+.btn.accent:hover{opacity:.9;background:var(--coral)}
+.btn.small{padding:5px 10px;font-size:13px;border-radius:9px}
+.btn:disabled{background:var(--inset);color:var(--muted);border-style:dashed;cursor:not-allowed}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;min-width:0}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+.left,.right{display:flex;flex-direction:column;gap:16px}
+.pick{display:flex;align-items:center;gap:12px}
+.pick svg{flex:none;width:24px;height:24px;fill:none;stroke:var(--coral);stroke-width:2;stroke-linejoin:round}
+select{flex:1;min-width:0;font:500 16px var(--display);color:var(--ink);background:var(--inset);border:2px solid var(--coral);border-radius:13px;padding:11px 14px}
+.sketch{background:var(--inset);border-radius:16px;position:relative;overflow:hidden}
+#sk{display:block;width:100%;height:auto;touch-action:pan-y;cursor:grab;user-select:none}
+#sk:active{cursor:grabbing}
+.skhint{position:absolute;right:12px;top:10px;font:400 11px var(--mono);color:var(--muted)}
+.e-solid{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round}
+.e-hid{stroke:var(--ink);stroke-width:1.3;stroke-dasharray:6 5;fill:none;opacity:.65}
+.e-aux{stroke:var(--muted);stroke-width:1.3;stroke-dasharray:5 5;fill:none}
+.e-h{stroke:var(--muted);stroke-width:1.6;fill:none}
+.dot{fill:var(--ink)}
+.t-coral{fill:var(--coral-fill);stroke:var(--coral)}
+.t-teal{fill:var(--teal-soft);stroke:var(--teal)}
+.t-amber{fill:var(--amber-fill);stroke:var(--amber)}
+.tri{stroke-width:3;stroke-linejoin:round}
+.ra{fill:none;stroke-width:1.5}
+.ra.coral{stroke:var(--coral)}.ra.teal{stroke:var(--teal)}.ra.amber{stroke:var(--amber)}
+.lb{font:600 19px var(--mono);fill:var(--ink);paint-order:stroke;stroke:var(--inset);stroke-width:5px;stroke-linejoin:round;text-anchor:middle;dominant-baseline:middle}
+.lb.sm{font-size:15px}
+.lb.teal{fill:var(--teal)}.lb.coral{fill:var(--coral)}.lb.amber{fill:var(--amber)}
+.cap{margin:0;color:var(--muted);font-size:13.5px}
+.cap[hidden]{display:none}
+.ttl{margin:0;font:400 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.legend li{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:11px;font:400 14px var(--mono);cursor:default}
+.legend li.on{background:var(--hover)}
+.legend i{flex:none;width:13px;height:13px;border-radius:50%}
+.legend .tag{margin-left:auto;font:500 11px var(--display);color:var(--muted)}
+.c-coral{background:var(--coral)}.c-teal{background:var(--teal)}.c-amber{background:var(--amber)}
+.hintrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.hintrow p{margin:0;color:var(--muted);flex:1 1 240px}
+.status{padding:10px 14px;border-radius:12px;font-size:14px;background:var(--warn-soft);color:var(--warn-ink)}
+.status.bad{background:var(--bad-soft);color:var(--bad)}
+.choice{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.choice .btn[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 20px}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.flbl{display:flex;justify-content:space-between;gap:6px;font-size:13.5px;color:var(--muted)}
+.flbl em{font:500 11.5px var(--mono);color:var(--done-ink)}
+.box{position:relative;display:flex;align-items:center;min-height:56px;border:1px solid var(--line);border-radius:13px;background:var(--card);overflow:hidden}
+.box:focus-within{outline:2px solid var(--coral);outline-offset:0;border-color:var(--coral)}
+.box b{position:absolute;left:15px;top:50%;transform:translateY(-50%);font:600 18px var(--mono);color:var(--navy);pointer-events:none;z-index:1}
+.box input{width:100%;height:54px;border:0;outline:0;background:transparent;color:var(--ink);font:400 17px var(--mono);padding:0 12px 0 42px;position:relative}
+.box input::placeholder{color:var(--muted);opacity:.7}
+.show{position:absolute;left:42px;right:8px;top:0;bottom:0;display:flex;align-items:center;pointer-events:none;white-space:nowrap;font:400 17px var(--mono);color:var(--ink);overflow:hidden}
+.box:not(:focus-within) input.covered{color:transparent}
+.box:focus-within .show{visibility:hidden}
+.field.given .box{background:var(--given);border-color:var(--given-line)}
+.field.done .box{background:var(--done);border-color:var(--done-line)}
+.field.err .box{background:var(--bad-soft);border-color:var(--bad)}
+.ferr{color:var(--bad);font-size:12.5px}
+.ferr:empty{display:none}
+.formulas{border-top:1px solid var(--line);padding-top:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 20px;font:400 13px var(--mono);color:var(--muted)}
+.steps{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.steps li{padding:7px 11px;background:var(--inset);border-radius:9px;line-height:1.7;overflow-wrap:anywhere}
+.steps code{font:400 13px var(--mono);color:var(--muted)}
+.steps .res{white-space:normal;font-family:var(--mono);font-size:13.5px}
+.steps .arrow{color:var(--coral);margin:0 4px}
+.tabhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.tabhead h2{margin:0;font-size:18px;font-weight:600;display:flex;align-items:center;gap:9px}
+.tabhead h2 svg{width:19px;height:19px;fill:none;stroke:var(--coral);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.keys{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{font:400 12.5px var(--display);padding:4px 10px;border-radius:7px}
+.chip.g{background:var(--given);color:var(--ink)}
+.chip.d{background:var(--done);color:var(--done-ink)}
+.tscroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:3px;width:100%;min-width:720px;font:400 13.5px var(--mono);font-variant-numeric:tabular-nums}
+th{font-weight:500;color:var(--muted);text-align:center;padding:7px 5px}
+th:first-child,td:first-child{text-align:left;font-family:var(--display)}
+td{text-align:center;padding:7px 6px;border-radius:7px;white-space:nowrap}
+td.g{background:var(--given)}
+td.d{background:var(--done)}
+td.none{color:var(--muted)}
+td.empty{text-align:center;padding:22px;color:var(--muted);font-family:var(--display)}
+/* matematički zapis */
+.rt{display:inline-block;position:relative;padding-left:.68em;white-space:nowrap}
+.rt>svg{position:absolute;left:0;top:0;width:.72em;height:100%;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.2}
+.ru{display:inline-block;border-top:.075em solid currentColor;padding:.07em .1em 0 .05em;line-height:1.15}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.76em;line-height:1.15;margin:0 .1em}
+.fr>span:first-child{border-bottom:.09em solid currentColor;padding:0 .2em .06em}
+.fr>span:last-child{padding:.06em .2em 0}
+.op{margin:0 .22em}
+.approx{color:var(--warn-ink)}
+/* vežbe */
+.level{display:flex;flex-direction:column;gap:12px}
+.level h2{margin:0;font-size:21px;font-weight:600}
+.level>p{margin:-8px 0 0;color:var(--muted)}
+.task{display:flex;flex-direction:column;gap:13px}
+.tmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.tmeta b{font:500 12.5px var(--mono);background:var(--hover);color:var(--ink);padding:3px 8px;border-radius:6px}
+.task p{margin:0;max-width:75ch}
+.givens{display:flex;flex-wrap:wrap;gap:8px}
+.givens>span{background:var(--given);padding:6px 12px;border-radius:9px;font:400 15px var(--mono);color:var(--ink)}
+.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.ans .box{background:var(--inset)}
+.ans.ok .box{background:var(--done);border-color:var(--done-line)}
+.ans.no .box{background:var(--bad-soft);border-color:var(--bad)}
+.ansmsg{font-size:12.5px;min-height:1em;color:var(--muted)}
+.ans.ok .ansmsg{color:var(--done-ink)}
+.ans.no .ansmsg{color:var(--bad)}
+.acts{display:flex;flex-wrap:wrap;gap:9px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:440px){.cols,.formulas{grid-template-columns:minmax(0,1fr)}.card{padding:16px;border-radius:18px}.pick>svg{display:none}select{font-size:15px;padding:10px 8px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="tabs" role="tablist" aria-label="Režim rada">
+    <button id="tab-calc" role="tab" aria-selected="true">Kalkulator</button>
+    <button id="tab-test" role="tab" aria-selected="false">Provežbaj za test</button>
+  </div>
+
+  <section id="view-calc" style="display:flex;flex-direction:column;gap:22px">
+    <div class="head">
+      <div>
+        <p class="eyebrow">Geometrija · III razred</p>
+        <h1>Pravilna piramida</h1>
+      </div>
+      <button class="btn" id="reset"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Obriši / Reset</button>
+    </div>
+    <div class="grid">
+      <div class="card left">
+        <div class="pick">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 22 20H2Z"/></svg>
+          <select id="type" aria-label="Vrsta piramide">
+            <option value="tri">Pravilna trostrana piramida</option>
+            <option value="quad" selected>Pravilna četvorostrana piramida</option>
+            <option value="hex">Pravilna šestostrana piramida</option>
+          </select>
+        </div>
+        <div class="sketch">
+          <svg id="sk" viewBox="0 0 640 600" role="img" aria-label="Skica piramide sa označenim ivicama, apotemom, visinom i Pitagorinim trouglovima"></svg>
+          <span class="skhint">prevuci da okreneš</span>
+        </div>
+        <p class="cap" id="skcap"></p>
+        <p class="cap" id="sknote" hidden>Skica je prilagođena: odnos H i a je prevelik da bi se nacrtao u pravoj razmeri.</p>
+        <div>
+          <p class="ttl">Pitagorini trouglovi (pređite mišem)</p>
+          <ul class="legend" id="legend"></ul>
+        </div>
+      </div>
+      <div class="card right">
+        <div class="hintrow">
+          <p>Unesite bar dve poznate veličine. Ostale se računaju automatski, u tačnom obliku sa korenom.</p>
+          <button class="btn small rootkey" type="button" title="Umetni znak korena">Umetni √</button>
+        </div>
+        <div id="status" class="status" role="status" hidden></div>
+        <div class="cols">
+          <div class="col" id="col1"><p class="ttl">Dužine</p></div>
+          <div class="col" id="col2"><p class="ttl">Površine i zapremina</p></div>
+        </div>
+        <div class="formulas" id="formulas"></div>
+        <div id="stepsWrap" hidden>
+          <p class="ttl">Postupak</p>
+          <ol class="steps" id="steps"></ol>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tabhead">
+        <h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>Istorija (poslednjih 10)</h2>
+        <div class="keys">
+          <span class="chip g">zadato</span><span class="chip d">izračunato</span>
+          <button class="btn small" id="clearHist" type="button">Obriši istoriju</button>
+        </div>
+      </div>
+      <div class="tscroll"><table>
+        <thead><tr><th>Tip</th><th>a</th><th>s</th><th>h</th><th>H</th><th>B</th><th>O</th><th>M</th><th>P</th><th>V</th></tr></thead>
+        <tbody id="hist"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="view-test" style="display:none;flex-direction:column;gap:26px">
+    <div class="head">
+      <div>
+        <p class="eyebrow">Geometrija · III razred</p>
+        <h1>Provežbaj za test</h1>
+        <p class="sub">Rezultate unosi u tačnom obliku, bez zaokruživanja: <code>4sqrt(3)</code>, <code>4√3</code> ili <code>36+9√3</code>. Postupak se otključava kada uneseš rezultat za dva elementa u zadatku.</p>
+      </div>
+      <button class="btn accent" id="newTest"><svg viewBox="0 0 24 24"><path d="M2 18h3l11-12h6"/><path d="M2 6h3l4 4.5"/><path d="M13 15l3 3h6"/><path d="m19 3 3 3-3 3"/><path d="m19 15 3 3-3 3"/></svg>Generiši novi test</button>
+    </div>
+    <div id="levels" style="display:flex;flex-direction:column;gap:30px"></div>
+  </section>
+</main>
+
+<script>
+// ==ENGINE-START==
+/* Tačna aritmetika: broj je zbir članova c·√r, gde je c razlomak (BigInt), a r
+   pozitivan potkorenski izraz (i sam takav zbir, pa su mogući ugnežđeni koreni).
+   Tek ako tačan zapis ne postoji (kubna jednačina) vrednost postaje približna. */
+const bAbs=x=>x<0n?-x:x;
+function bgcd(a,b){a=bAbs(a);b=bAbs(b);while(b){[a,b]=[b,a%b]}return a}
+function bsqrt(n){if(n<2n)return n;let x=BigInt(Math.floor(Math.sqrt(Number(n))));
+  if(n>(1n<<100n)){x=1n<<BigInt(Math.ceil(n.toString(2).length/2))}
+  for(let i=0;i<400;i++){const y=(x+n/x)>>1n;if(y===x||y===x+1n||y===x-1n){x=y;break}x=y}
+  while(x*x>n)x--;while((x+1n)*(x+1n)<=n)x++;return x}
+class Rat{
+  constructor(p,q=1n){if(q<0n){p=-p;q=-q}const g=bgcd(p,q)||1n;this.p=p/g;this.q=q/g}
+  add(o){return new Rat(this.p*o.q+o.p*this.q,this.q*o.q)}
+  mul(o){return new Rat(this.p*o.p,this.q*o.q)}
+  div(o){return new Rat(this.p*o.q,this.q*o.p)}
+  neg(){return new Rat(-this.p,this.q)}
+  get zero(){return this.p===0n}
+  get one(){return this.p===1n&&this.q===1n}
+  get num(){return bigRatio(this.p,this.q)}
+  get key(){return this.p+'/'+this.q}
+}
+function bigRatio(p,q){const lp=bAbs(p).toString().length,lq=q.toString().length;
+  if(lp<250&&lq<250)return Number(p)/Number(q);
+  const cut=BigInt(Math.max(0,Math.min(lp,lq)-40));const d=10n**cut;return Number(p/d)/Number(q/d)}
+// Rastavlja pozitivan razlomak: √(p/q) = k·√d, d bez kvadratnih činilaca.
+function ratRoot(c){let n=c.p*c.q,k=1n,d=1n;
+  for(let f=2n;f<20000n&&f*f<=n;f+=f===2n?1n:2n){let e=0;while(n%f===0n){n/=f;e++}
+    k*=f**BigInt(e>>1);if(e&1)d*=f}
+  const s=bsqrt(n);if(s*s===n)k*=s;else d*=n;
+  return{k:new Rat(k,c.q),d}}
+const ONE=new Rat(1n);
+class Val{
+  constructor(terms,approx=null){this.terms=terms;this.approx=approx!==null;
+    if(this.approx){this.v=approx;this.key='~'+approx;return}
+    this.terms.sort(cmpTerm);
+    this.key=this.terms.map(t=>t.c.key+(t.r?'@('+t.r.key+')':'')).join('+')||'0';
+    this.v=this.terms.reduce((s,t)=>s+t.c.num*(t.r?Math.sqrt(t.r.v):1),0)}
+  static n(x,q=1){return new Val(x===0||x===0n?[]:[{c:new Rat(BigInt(x),BigInt(q)),r:null}])}
+  static rat(c){return new Val(c.zero?[]:[{c,r:null}])}
+  static ax(v){return new Val([],v)}
+  get zero(){return this.approx?Math.abs(this.v)<1e-11:this.terms.length===0}
+  get pos(){return this.v>1e-11}
+  get isRat(){return !this.approx&&(this.terms.length===0||(this.terms.length===1&&!this.terms[0].r))}
+  get rat(){return this.terms.length?this.terms[0].c:new Rat(0n)}
+  get depth(){return this.approx?0:Math.max(0,...this.terms.map(t=>t.r?1+t.r.depth:0))}
+  scale(c){return this.approx?Val.ax(this.v*c.num):c.zero?Val.n(0):new Val(this.terms.map(t=>({c:t.c.mul(c),r:t.r})))}
+  neg(){return this.scale(new Rat(-1n))}
+  add(o){
+    if(this.approx||o.approx)return Val.ax(this.v+o.v);
+    const m=new Map();
+    for(const t of[...this.terms,...o.terms]){const k=t.r?t.r.key:'';const e=m.get(k);
+      if(e)e.c=e.c.add(t.c);else m.set(k,{c:t.c,r:t.r})}
+    const res=[...m.values()].filter(t=>!t.c.zero);
+    if(res.length===0)return Val.n(0);
+    const out=guard(new Val(res),this.v+o.v);
+    const mag=res.reduce((s,t)=>s+Math.abs(t.c.num*(t.r?Math.sqrt(t.r.v):1)),0);
+    return !out.approx&&Math.abs(out.v)<1e-12*mag?Val.n(0):out}
+  sub(o){return this.add(o.neg())}
+  mul(o){
+    if(this.approx||o.approx)return Val.ax(this.v*o.v);
+    let s=Val.n(0);
+    for(const x of this.terms)for(const y of o.terms){s=s.add(termMul(x,y));if(s.approx)return Val.ax(this.v*o.v)}
+    return guard(s,this.v*o.v)}
+  sq(){return this.mul(this)}
+  inv(depth=0){
+    if(this.approx||this.terms.length===0)return Val.ax(1/this.v);
+    if(depth>7)return Val.ax(1/this.v);
+    let res;
+    if(this.terms.length===1){const t=this.terms[0];const c=new Rat(1n).div(t.c);
+      if(!t.r)return Val.rat(c);
+      res=new Val([{c,r:t.r}]).mul(t.r.inv(depth+1))}
+    else{const t=this.terms[this.terms.length-1];const A=new Val(this.terms.slice(0,-1));const T=new Val([t]);
+      res=A.sub(T).mul(A.sq().sub(T.sq()).inv(depth+1))}
+    return guard(res,1/this.v)}
+  div(o){return this.mul(o.inv())}
+  sqrt(){
+    const tgt=Math.sqrt(this.v);
+    if(this.approx)return Val.ax(tgt);
+    if(this.terms.length===0)return Val.n(0);
+    if(this.v<0||this.depth>2)return Val.ax(tgt);
+    if(this.isRat){const{k,d}=ratRoot(this.rat);
+      return d===1n?Val.rat(k):new Val([{c:k,r:Val.n(d)}])}
+    if(this.terms.length===1){const t=this.terms[0];const{k,d}=ratRoot(t.c);
+      return guard(new Val([{c:k,r:new Val([{c:new Rat(d),r:t.r}])}]),tgt)}
+    // pokušaj razgradnje: √(x+y) = √u ± √w kada je x²−y² potpun kvadrat
+    const xt=this.terms.find(t=>!t.r);
+    if(xt&&this.terms.length===2){
+      const x=Val.rat(xt.c),y=this.sub(x);const N=x.sq().sub(y.sq());
+      if(N.isRat&&N.v>=0){const{k,d}=ratRoot(N.rat);
+        if(d===1n){const q=Val.rat(k),h=new Rat(1n,2n);
+          const u=x.add(q).scale(h),w=x.sub(q).scale(h);
+          if(u.v>=0&&w.v>=0){const su=u.sqrt(),sw=w.sqrt();
+            const r=y.v>0?su.add(sw):su.sub(sw);
+            if(!r.approx&&Math.abs(r.v-tgt)<1e-9*Math.max(1,tgt))return r}}}}
+    // izvlačenje zajedničkog činioca ispred korena
+    let lcm=1n,g=0n;
+    for(const t of this.terms){lcm=lcm*t.c.q/bgcd(lcm,t.c.q)}
+    for(const t of this.terms){g=bgcd(g,t.c.p*(lcm/t.c.q))}
+    const content=new Rat(g,lcm);const{k,d}=ratRoot(content);
+    const W=this.scale(new Rat(1n).div(content)).scale(new Rat(d));
+    return guard(new Val([{c:k,r:W}]),tgt)}
+  eq(o){const m=Math.max(1,Math.abs(this.v),Math.abs(o.v));return Math.abs(this.v-o.v)<=1e-9*m}
+  text(){return fmt(this,TXT)}
+  html(){return fmt(this,HTM)}
+}
+function cmpTerm(a,b){const ra=a.r?(a.r.isRat?1:2):0,rb=b.r?(b.r.isRat?1:2):0;
+  if(ra!==rb)return ra-rb;if(!a.r)return 0;return a.r.v-b.r.v}
+function termMul(x,y){const c=x.c.mul(y.c);
+  if(!x.r&&!y.r)return Val.rat(c);
+  if(!x.r)return new Val([{c,r:y.r}]);
+  if(!y.r)return new Val([{c,r:x.r}]);
+  if(x.r.key===y.r.key)return x.r.scale(c);
+  return x.r.mul(y.r).sqrt().scale(c)}
+// Previše glomazan zapis ili brojčano neslaganje -> približna vrednost.
+function guard(val,target){
+  if(val.approx)return val;
+  if(!Number.isFinite(target))return Val.ax(target);
+  if(Math.abs(val.v-target)>1e-7*Math.max(1,Math.abs(target)))return Val.ax(target);
+  if(val.terms.length>10)return Val.ax(target);
+  for(const t of val.terms){if(t.c.p.toString().length>90||t.c.q.toString().length>90)return Val.ax(target)}
+  return val}
+const decStr=c=>{ // razlomak sa konačnim decimalama (najviše 3) ili null
+  let q=c.q;for(const f of[2n,5n])while(q%f===0n)q/=f;if(q!==1n)return null;
+  const s=c.num.toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+  return Math.abs(Number(s)-c.num)<1e-12?s.replace('.',','):null};
+const TXT={rad:s=>/^\d+$/.test(s)?'√'+s:'√('+s+')',frac:(n,d)=>(/[+−]/.test(n)?'('+n+')':n)+'/'+d,plus:'+',minus:'−'};
+const RS='<svg viewBox="0 0 10 20" preserveAspectRatio="none" aria-hidden="true"><path vector-effect="non-scaling-stroke" d="M.5 12.5 2.6 11 5.4 19.6 10 .35"/></svg>';
+const HTM={rad:s=>'<span class="rt">'+RS+'<span class="ru">'+s+'</span></span>',
+  frac:(n,d)=>'<span class="fr"><span>'+n+'</span><span>'+d+'</span></span>',
+  plus:'<span class="op">+</span>',minus:'<span class="op">−</span>'};
+function fmt(x,F){
+  if(x.approx){const s=Number.isFinite(x.v)?x.v.toFixed(4).replace(/0+$/,'').replace(/\.$/,'').replace('.',','):'?';
+    return F===HTM?'<span class="approx">≈ '+s+'</span>':'≈ '+s}
+  if(x.terms.length===0)return'0';
+  if(x.isRat){const c=x.rat;const neg=c.p<0n;const a=neg?c.neg():c;
+    if(a.q===1n)return(neg?'−':'')+a.p;
+    const d=decStr(a);return(neg?'−':'')+(d??F.frac(String(a.p),String(a.q)))}
+  let out='';
+  x.terms.forEach((t,i)=>{const neg=t.c.p<0n;const p=neg?-t.c.p:t.c.p;const q=t.c.q;
+    let s;
+    if(t.r){const r=F.rad(fmt(t.r,F));const num=(p===1n?'':String(p))+r;s=q===1n?num:F.frac(num,String(q))}
+    else s=q===1n?String(p):F.frac(String(p),String(q));
+    if(i===0)out+=(neg?'−':'')+s;else out+=(neg?F.minus:F.plus)+s});
+  return out}
+
+/* Parser unosa: 4√3, 4sqrt(3), 36+9√3, √3/2, 2,5, (1+√2)^2 */
+class ParseErr extends Error{}
+function parseVal(src){
+  let s=String(src).toLowerCase().replace(/\s+/g,'')
+    .replace(/,/g,'.').replace(/[·×⋅]/g,'*').replace(/:|÷/g,'/').replace(/[−–—]/g,'-')
+    .replace(/²/g,'^2').replace(/³/g,'^3').replace(/sqrt|koren|kor/g,'√');
+  if(!s)throw new ParseErr('prazno');
+  let i=0;
+  const peek=()=>s[i];
+  function expr(){let v=term();while(peek()==='+'||peek()==='-'){const o=s[i++];const t=term();v=o==='+'?v.add(t):v.sub(t)}return v}
+  function term(){let v=power();
+    for(;;){const c=peek();
+      if(c==='*'){i++;v=v.mul(power())}
+      else if(c==='/'){i++;const d=power();if(d.zero)throw new ParseErr('deljenje nulom');v=v.div(d)}
+      else if(c==='√'||c==='('||(c>='0'&&c<='9')||c==='.')v=v.mul(power());
+      else return v}}
+  function power(){let v=unary();
+    if(peek()==='^'){i++;const m=/^\d+/.exec(s.slice(i));if(!m||+m[0]>8)throw new ParseErr('stepen');i+=m[0].length;
+      let r=Val.n(1);for(let k=0;k<+m[0];k++)r=r.mul(v);v=r}
+    return v}
+  function unary(){if(peek()==='-'){i++;return unary().neg()}if(peek()==='+'){i++;return unary()}return prim()}
+  function prim(){const c=peek();
+    if(c==='√'){i++;const a=prim();if(a.v<0)throw new ParseErr('negativan koren');return a.sqrt()}
+    if(c==='('){i++;const v=expr();if(peek()!==')')throw new ParseErr('zagrada');i++;return v}
+    const m=/^(\d+\.?\d*|\.\d+)/.exec(s.slice(i));
+    if(!m)throw new ParseErr('znak');
+    i+=m[0].length;const[w,f='']=m[0].split('.');
+    return Val.rat(new Rat(BigInt((w||'0')+f),10n**BigInt(f.length)))}
+  const v=expr();if(i<s.length)throw new ParseErr('znak');return v}
+
+/* Geometrija */
+const ROOT3=Val.n(3).sqrt();
+const q=(p,d=1)=>Val.n(p,d);
+const TYPES={
+  tri:{id:'tri',n:3,name:'Pravilna trostrana piramida',short:'trostrana',beta:ROOT3.scale(new Rat(1n,4n)),rho2:q(1,12),tau2:q(1,3),
+    O:'O = 3a',B:'B = a²√3/4',r:'a√3/6',R:'a√3/3'},
+  quad:{id:'quad',n:4,name:'Pravilna četvorostrana piramida',short:'četvorostrana',beta:q(1),rho2:q(1,4),tau2:q(1,2),
+    O:'O = 4a',B:'B = a²',r:'a/2',R:'a√2/2'},
+  hex:{id:'hex',n:6,name:'Pravilna šestostrana piramida',short:'šestostrana',beta:ROOT3.scale(new Rat(3n,2n)),rho2:q(3,4),tau2:q(1),
+    O:'O = 6a',B:'B = 3a²√3/2',r:'a√3/2',R:'a'}
+};
+const KEYS=['a','s','h','H','B','O','M','P','V'];
+const NAMES={a:'osnovna ivica a',s:'bočna ivica s',h:'apotema h',H:'visina H',B:'površina baze B',O:'obim baze O',M:'omotač M',P:'površina P',V:'zapremina V'};
+const TEAL=T=>`h² = H² + (${T.r})²`;
+const sqLabel=x=>x==='a'?'a²':`(${x})²`;
+const AMBER=T=>`s² = H² + ${sqLabel(T.R)}`;
+const CORAL='s² = h² + (a/2)²';
+
+function quadRoots(A,B,C){ // pozitivna rešenja Ax²+Bx+C=0
+  const D=B.sq().sub(A.mul(C).scale(new Rat(4n)));
+  if(D.v<-1e-11)return[];
+  const two=A.scale(new Rat(2n));
+  if(D.zero){const x=B.neg().div(two);return x.pos?[x]:[]}
+  const r=D.sqrt();
+  return[B.neg().sub(r).div(two),B.neg().add(r).div(two)].filter(x=>x.pos)}
+function polyAt(c,x){return c.reduce((s,k)=>s.mul(x).add(k),Val.n(0))}
+function fracGuess(x,maxD=2000){let h0=0,h1=1,k0=1,k1=0,y=x;
+  for(let i=0;i<24;i++){const a=Math.floor(y);const h=a*h1+h0,k=a*k1+k0;if(k>maxD)break;h0=h1;h1=h;k0=k1;k1=k;
+    if(Math.abs(h1/k1-x)<1e-10*Math.max(1,x))return[h1,k1];const f=y-a;if(f<1e-12)break;y=1/f}
+  return null}
+function cubicRoots(c,xmax){ // c3x³+c2x²+c1x+c0, pozitivna rešenja do xmax
+  const f=x=>c[0].v*x*x*x+c[1].v*x*x+c[2].v*x+c[3].v;
+  const num=[];let px=xmax*1e-7,pf=f(px);
+  for(let i=1;i<=6000;i++){const x=xmax*Math.pow(1e-7,1-i/6000);const y=f(x);
+    if(pf===0||pf*y<0){let lo=px,hi=x,fl=pf;for(let k=0;k<120;k++){const m=(lo+hi)/2,fm=f(m);if(fl*fm<=0)hi=m;else{lo=m;fl=fm}}num.push((lo+hi)/2)}
+    px=x;pf=y}
+  const mult=[Val.n(1),ROOT3,Val.n(2).sqrt()];
+  for(const x of num)for(const m of mult){const g=fracGuess(x/m.v);if(!g)continue;
+    const cand=Val.n(g[0],g[1]).mul(m);
+    if(polyAt(c,cand).zero){ // tačan koren: ostatak je kvadratna jednačina
+      const b1=c[1].add(c[0].mul(cand)),b0=c[2].add(b1.mul(cand));
+      const rest=quadRoots(c[0],b1,b0).filter(r=>!r.eq(cand));
+      return[cand,...rest].filter(r=>r.v<=xmax*(1+1e-9))}}
+  return num.map(x=>Val.ax(x))}
+
+function attempt(T,g){
+  const n=q(T.n),{beta,rho2,tau2}=T,half=new Rat(1n,2n);
+  const base=g.a?'a':g.O?'O':g.B?'B':null;
+  const s0=[];let A2=null,aExact=null;const kb=new Set();
+  const step=(list,k,f,res)=>list.push({k,f,res});
+  if(base==='a'){aExact=g.a;A2=g.a.sq();kb.add('a')}
+  if(base==='O'){aExact=g.O.div(n);A2=aExact.sq();step(s0,'a',T.O,[['a',aExact]]);kb.add('a').add('O')}
+  if(base==='B'){A2=g.B.div(beta);step(s0,'a',T.B,[['a²',A2],['a',A2.sqrt()]]);kb.add('a').add('B')}
+  const mk=(A,H2,steps,known,used,extra={})=>({A2:A,H2,steps,known:new Set([...known]),used:new Set(used),...extra});
+  const fail=msg=>({fail:msg});
+  const has=(...k)=>k.every(x=>g[x]);
+  if(base&&g.H)return{pair:[base,'H'],c:[mk(A2,g.H.sq(),s0,kb,[],{a:aExact})]};
+  if(base&&g.h){const H2=g.h.sq().sub(rho2.mul(A2));
+    if(!H2.pos)return fail(`Apotema h mora biti veća od ${T.r} = ${rho2.mul(A2).sqrt().text()}.`);
+    return{pair:[base,'h'],c:[mk(A2,H2,s0,kb,[],{a:aExact})]}}
+  if(base&&g.s){const H2=g.s.sq().sub(tau2.mul(A2));
+    if(!H2.pos)return fail(`Bočna ivica s mora biti veća od ${T.R} = ${tau2.mul(A2).sqrt().text()}.`);
+    return{pair:[base,'s'],c:[mk(A2,H2,s0,kb,[],{a:aExact})]}}
+  const a0=()=>aExact||A2.sqrt();
+  if(base&&g.M){const O=n.mul(a0());const h=g.M.scale(new Rat(2n)).div(O);const H2=h.sq().sub(rho2.mul(A2));
+    if(!H2.pos)return fail(`Omotač M je premali za ovu bazu: apotema h = ${h.text()} mora biti veća od ${T.r}.`);
+    const st=[...s0];step(st,'h','M = O·h/2 ⇒ h = 2M/O',[['O',O],['h',h]]);
+    return{pair:[base,'M'],c:[mk(A2,H2,st,new Set([...kb,'h','O']),[],{a:aExact})]}}
+  if(base&&g.P){const B=beta.mul(A2);const M=g.P.sub(B);
+    if(!M.pos)return fail(`Površina P mora biti veća od površine baze B = ${B.text()}.`);
+    const O=n.mul(a0());const h=M.scale(new Rat(2n)).div(O);const H2=h.sq().sub(rho2.mul(A2));
+    if(!H2.pos)return fail(`Površina P je premala za ovu bazu: apotema h = ${h.text()} mora biti veća od ${T.r}.`);
+    const st=[...s0];step(st,'M','P = B + M ⇒ M = P − B',[['B',B],['M',M]]);step(st,'h','M = O·h/2 ⇒ h = 2M/O',[['O',O],['h',h]]);
+    return{pair:[base,'P'],c:[mk(A2,H2,st,new Set([...kb,'B','M','h','O']),[],{a:aExact})]}}
+  if(base&&g.V){const B=beta.mul(A2);const H=g.V.scale(new Rat(3n)).div(B);
+    const st=[...s0];step(st,'H','V = B·H/3 ⇒ H = 3V/B',[['B',B],['H',H]]);
+    return{pair:[base,'V'],c:[mk(A2,H.sq(),st,new Set([...kb,'B','H']),[],{a:aExact})]}}
+  if(has('h','H')){const d=g.h.sq().sub(g.H.sq());if(!d.pos)return fail('Apotema h mora biti veća od visine H.');
+    const x=d.div(rho2);const st=[];step(st,'a',TEAL(T),[[`(${T.r})²`,d],['a²',x],['a',x.sqrt()]]);
+    return{pair:['h','H'],c:[mk(x,g.H.sq(),st,['a'],['teal'])]}}
+  if(has('s','H')){const d=g.s.sq().sub(g.H.sq());if(!d.pos)return fail('Bočna ivica s mora biti veća od visine H.');
+    const x=d.div(tau2);const st=[];step(st,'a',AMBER(T),[[sqLabel(T.R),d],['a²',x],['a',x.sqrt()]]);
+    return{pair:['s','H'],c:[mk(x,g.H.sq(),st,['a'],['amber'])]}}
+  if(has('s','h')){const d=g.s.sq().sub(g.h.sq());if(!d.pos)return fail('Bočna ivica s mora biti veća od apoteme h.');
+    const x=d.scale(new Rat(4n));const H2=g.h.sq().sub(rho2.mul(x));
+    if(!H2.pos)return fail('Sa ovim s i h piramida ne postoji: osnovna ivica ispada prevelika za datu apotemu.');
+    const st=[];step(st,'a',CORAL,[['(a/2)²',d],['a²',x],['a',x.sqrt()]]);
+    return{pair:['s','h'],c:[mk(x,H2,st,['a'],['coral'])]}}
+  if(has('M','h')){const O=g.M.scale(new Rat(2n)).div(g.h);const a=O.div(n);const x=a.sq();const H2=g.h.sq().sub(rho2.mul(x));
+    if(!H2.pos)return fail(`Sa ovim M i h piramida ne postoji: apotema mora biti veća od ${T.r}.`);
+    const st=[];step(st,'O','M = O·h/2 ⇒ O = 2M/h',[['O',O],['a',a]]);
+    return{pair:['M','h'],c:[mk(x,H2,st,['a','O'],[],{a})]}}
+  if(has('P','h')){const r=quadRoots(beta,n.mul(g.h).scale(half),g.P.neg());
+    const c=r.map(a=>{const x=a.sq();const H2=g.h.sq().sub(rho2.mul(x));const st=[];
+      step(st,'a',`P = B + O·h/2 (${T.B.slice(4)} + ${T.n}a·h/2): kvadratna jednačina po a`,[['a',a]]);
+      return mk(x,H2,st,['a'],[],{a})}).filter(z=>z.H2.pos);
+    return c.length?{pair:['P','h'],c}:fail('Sa ovim P i h piramida ne postoji.')}
+  if(has('M','P')){const B=g.P.sub(g.M);if(!B.pos)return fail('Površina P mora biti veća od omotača M.');
+    const x=B.div(beta);const a=x.sqrt();const O=n.mul(a);const h=g.M.scale(new Rat(2n)).div(O);const H2=h.sq().sub(rho2.mul(x));
+    if(!H2.pos)return fail('Sa ovim P i M piramida ne postoji: omotač je premali za dobijenu bazu.');
+    const st=[];step(st,'B','P = B + M ⇒ B = P − M',[['B',B]]);step(st,'a',T.B,[['a²',x],['a',a]]);step(st,'h','M = O·h/2 ⇒ h = 2M/O',[['O',O],['h',h]]);
+    return{pair:['M','P'],c:[mk(x,H2,st,['a','B','h','O'],[])]}}
+  if(has('V','H')){const B=g.V.scale(new Rat(3n)).div(g.H);const x=B.div(beta);const st=[];
+    step(st,'B','V = B·H/3 ⇒ B = 3V/H',[['B',B]]);step(st,'a',T.B,[['a²',x],['a',x.sqrt()]]);
+    return{pair:['V','H'],c:[mk(x,g.H.sq(),st,['a','B'],[])]}}
+  const n2=q(T.n*T.n);
+  if(has('M','H')){const K=g.M.sq().scale(new Rat(4n)).div(n2);
+    const c=quadRoots(rho2,g.H.sq(),K.neg()).map(x=>{const st=[];
+      step(st,'a',`M = ${T.n}a·h/2 i ${TEAL(T)}: jednačina po a²`,[['a²',x],['a',x.sqrt()]]);
+      return mk(x,g.H.sq(),st,['a'],['teal'])});
+    return c.length?{pair:['M','H'],c}:fail('Sa ovim M i H piramida ne postoji.')}
+  if(has('P','H')){const dn=g.P.mul(beta).scale(new Rat(2n)).add(n2.mul(g.H.sq()).scale(new Rat(1n,4n)));
+    const x=g.P.sq().div(dn);const st=[];
+    step(st,'a',`P = B + M i ${TEAL(T)}: jednačina po a²`,[['a²',x],['a',x.sqrt()]]);
+    return{pair:['P','H'],c:[mk(x,g.H.sq(),st,['a'],['teal'])]}}
+  if(has('M','s')){const K=g.M.sq().scale(new Rat(4n)).div(n2);
+    const c=quadRoots(q(1,4),g.s.sq().neg(),K).map(x=>{const st=[];
+      step(st,'a',`M = ${T.n}a·h/2 i ${CORAL}: bikvadratna jednačina po a`,[['a²',x],['a',x.sqrt()]]);
+      return mk(x,g.s.sq().sub(tau2.mul(x)),st,['a'],['coral'])}).filter(z=>z.H2.pos);
+    return c.length?{pair:['M','s'],c}:fail('Sa ovim M i s piramida ne postoji.')}
+  if(has('P','s')){const A=beta.sq().add(n2.scale(new Rat(1n,16n)));
+    const Bq=g.P.mul(beta).scale(new Rat(2n)).add(n2.mul(g.s.sq()).scale(new Rat(1n,4n))).neg();
+    const c=quadRoots(A,Bq,g.P.sq()).filter(x=>g.P.sub(beta.mul(x)).pos).map(x=>{const st=[];
+      step(st,'a',`P = B + M i ${CORAL}: bikvadratna jednačina po a`,[['a²',x],['a',x.sqrt()]]);
+      return mk(x,g.s.sq().sub(tau2.mul(x)),st,['a'],['coral'])}).filter(z=>z.H2.pos);
+    return c.length?{pair:['P','s'],c}:fail('Sa ovim P i s piramida ne postoji.')}
+  if(has('V','P')){const K=n2.scale(new Rat(9n,4n)).mul(g.V.sq()).div(beta.sq());
+    const c=quadRoots(g.P.mul(beta).scale(new Rat(2n)),g.P.sq().neg(),K).filter(x=>g.P.sub(beta.mul(x)).pos).map(x=>{
+      const H=g.V.scale(new Rat(3n)).div(beta.mul(x));const st=[];
+      step(st,'a',`V = B·H/3 i P = B + M: kvadratna jednačina po a²`,[['a²',x],['a',x.sqrt()]]);
+      step(st,'H','V = B·H/3 ⇒ H = 3V/B',[['H',H]]);
+      return mk(x,H.sq(),st,['a','H'],[])});
+    return c.length?{pair:['V','P'],c}:fail('Sa ovim P i V piramida ne postoji.')}
+  const K=g.V?g.V.sq().scale(new Rat(9n)).div(beta.sq()):null;
+  const cub=(f,cs,xmax,mkH,used)=>{
+    const c=cubicRoots(cs,xmax).map(x=>{const st=[];
+      step(st,'a',f,[['a²',x],['a',x.sqrt()]]);
+      return mk(x,mkH(x),st,['a'],used)}).filter(z=>z.H2.pos);
+    return c};
+  if(has('V','h')){const c=cub(`V = B·H/3 i ${TEAL(T)}: kubna jednačina po a²`,[rho2,g.h.sq().neg(),Val.n(0),K],g.h.sq().v/rho2.v,x=>g.h.sq().sub(rho2.mul(x)),['teal']);
+    return c.length?{pair:['V','h'],c}:fail('Zapremina V je prevelika za ovu apotemu: takva piramida ne postoji.')}
+  if(has('V','s')){const c=cub(`V = B·H/3 i ${AMBER(T)}: kubna jednačina po a²`,[tau2,g.s.sq().neg(),Val.n(0),K],g.s.sq().v/tau2.v,x=>g.s.sq().sub(tau2.mul(x)),['amber']);
+    return c.length?{pair:['V','s'],c}:fail('Zapremina V je prevelika za ovu bočnu ivicu: takva piramida ne postoji.')}
+  if(has('V','M')){const m=g.M.sq().scale(new Rat(4n)).div(n2);
+    const c=cub(`V = B·H/3, M = ${T.n}a·h/2 i ${TEAL(T)}: kubna jednačina po a²`,[rho2,Val.n(0),m.neg(),K],Math.sqrt(m.v/rho2.v),x=>m.div(x).sub(rho2.mul(x)),['teal']);
+    return c.length?{pair:['V','M'],c}:fail('Sa ovim V i M piramida ne postoji.')}
+  return null}
+
+function complete(T,cand,g){
+  const half=new Rat(1n,2n),third=new Rat(1n,3n);
+  const a=g.a||cand.a||cand.A2.sqrt();
+  const O=g.O||q(T.n).mul(a);
+  const B=g.B||T.beta.mul(cand.A2);
+  const H=g.H||cand.H2.sqrt();
+  const r2=T.rho2.mul(cand.A2),R2=T.tau2.mul(cand.A2);
+  const h2=cand.H2.add(r2),s2=cand.H2.add(R2);
+  const h=g.h||h2.sqrt(),s=g.s||s2.sqrt();
+  const M=g.M||O.mul(h).scale(half);
+  const P=g.P||B.add(M);
+  const V=g.V||B.mul(H).scale(third);
+  const vals={a,O,B,H,h,s,M,P,V};
+  const steps=[...cand.steps];const used=new Set(cand.used);
+  const kn=new Set([...cand.known,...Object.keys(g)]);
+  const add=(k,f,res)=>{if(!kn.has(k)){steps.push({k,f,res});kn.add(k)}};
+  add('O',T.O,[['O',O]]);add('B',T.B,[['B',B]]);
+  const ph=(k,f,x2,x,tri)=>{if(kn.has(k))return;used.add(tri);steps.push({k,f,res:[[k+'²',x2],[k,x]]});kn.add(k)};
+  for(let i=0;i<3;i++){
+    if(kn.has('H')){ph('h',TEAL(T),h2,h,'teal');ph('s',AMBER(T),s2,s,'amber')}
+    if(kn.has('h')){ph('H',TEAL(T),cand.H2,H,'teal');ph('s',CORAL,s2,s,'coral')}
+    if(kn.has('s')){ph('h',CORAL,h2,h,'coral');ph('H',AMBER(T),cand.H2,H,'amber')}
+  }
+  // veze koje važe i kada su sve tri duži već poznate iz zadatih vrednosti
+  if(g.s&&g.h&&!g.a&&!g.O&&!g.B)used.add('coral');
+  add('M','M = O·h/2',[['M',M]]);add('P','P = B + M',[['P',P]]);add('V','V = B·H/3',[['V',V]]);
+  return{vals,steps,used,approx:Object.values(vals).some(x=>x.approx)}}
+
+function solve(typeId,g){
+  const T=TYPES[typeId];const keys=Object.keys(g);
+  if(keys.length===0)return{status:'empty'};
+  const r=attempt(T,g);
+  if(!r){
+    const base=['a','O','B'].filter(k=>g[k]);
+    if(base.length){
+      const k=base[0];const a=k==='a'?g.a:k==='O'?g.O.div(q(T.n)):g.B.div(T.beta).sqrt();
+      const vals={a:g.a||a,O:g.O||q(T.n).mul(a),B:g.B||T.beta.mul(a.sq())};
+      const check=q(T.n).mul(a);
+      if(g.O&&!g.O.eq(check))return conflict('O',check,g.O);
+      const cb=T.beta.mul(a.sq());if(g.B&&!g.B.eq(cb))return conflict('B',cb,g.B);
+      return{status:'partial',vals,msg:'Osnovna ivica, obim i površina baze određuju samo bazu. Unesite još jednu veličinu: s, h, H, M, P ili V.'}}
+    return{status:'need',msg:'Unesite još jednu veličinu da bi piramida bila određena.'}}
+  if(r.fail)return{status:'invalid',msg:r.fail};
+  const sols=[];let mismatch=null;
+  for(const c of r.c){
+    if(!c.A2.pos||!c.H2.pos)continue;
+    const sol=complete(T,c,g);
+    let good=true;
+    for(const k of keys){
+      const nat=natural(T,c,k);
+      if(!nat.eq(g[k])){good=false;
+        if(!r.pair.includes(k)&&!mismatch)mismatch=conflict(k,nat,g[k]);
+        break}}
+    if(good&&!sols.some(o=>o.vals.a.eq(sol.vals.a)))sols.push(sol)}
+  if(!sols.length)return mismatch||{status:'invalid',msg:'Pravilna piramida sa ovim vrednostima ne postoji.'};
+  sols.sort((x,y)=>x.vals.a.v-y.vals.a.v);
+  return{status:'ok',sols}}
+function natural(T,c,k){ // vrednost veličine izračunata samo iz a² i H²
+  const a=c.a||c.A2.sqrt(),H=c.H2.sqrt();
+  const h=c.H2.add(T.rho2.mul(c.A2)).sqrt(),s=c.H2.add(T.tau2.mul(c.A2)).sqrt();
+  const O=q(T.n).mul(a),B=T.beta.mul(c.A2),M=O.mul(h).scale(new Rat(1n,2n));
+  return{a,H,h,s,O,B,M,P:B.add(M),V:B.mul(H).scale(new Rat(1n,3n))}[k]}
+function conflict(k,calc,given){return{status:'conflict',key:k,msg:`Vrednosti se ne slažu: iz ostalih podataka je ${k} = ${calc.text()}, a uneto je ${k} = ${given.text()}. Promenite ili obrišite jedno polje.`}}
+
+/* Generator zadataka */
+function pickOf(arr,rng){return arr[Math.floor(rng()*arr.length)]}
+function forward(type,a,H){return solve(type,{a:q(a),H:q(H)}).sols[0].vals}
+function makeTest(rng=Math.random){
+  const P=a=>pickOf(a,rng);
+  const name=t=>TYPES[t].name;
+  const easy=[
+    ()=>{const a=P([4,6,8,10,12]),H=P([3,4,5,8]);return{type:'quad',given:{a:q(a),H:q(H)},targets:['O','B','M'],text:'Data je pravilna četvorostrana piramida. Izračunaj obim baze O, površinu baze B i površinu omotača M.'}},
+    ()=>{const a=P([2,4,6]),H=P([1,2,4,5]),v=forward('hex',a,H);return{type:'hex',given:{a:q(a),h:v.h},targets:['B','M'],text:'Data je pravilna šestostrana piramida. Izračunaj površinu baze B i površinu omotača M.'}},
+    ()=>{const a=P([6,12,18]),H=P([2,3,4]);return{type:'tri',given:{a:q(a),H:q(H)},targets:['O','B','h'],text:'Data je pravilna trostrana piramida. Izračunaj obim baze O, površinu baze B i apotemu h.'}},
+    ()=>{const a=P([4,6,8]),h=P([5,7,9]);return{type:'quad',given:{a:q(a),h:q(h)},targets:['O','M','P'],text:'Data je pravilna četvorostrana piramida. Izračunaj obim baze O, omotač M i površinu piramide P.'}}
+  ];
+  const mid=[
+    ()=>{const a=P([6,12]),H=P([2,4,6,8]),v=forward('tri',a,H);return{type:'tri',given:{a:q(a),h:v.h},targets:['H','V'],text:'Data je pravilna trostrana piramida. Izračunaj visinu H i zapreminu V.'}},
+    ()=>{const a=P([2,4,6]),H=P([3,4,5]),v=forward('hex',a,H);return{type:'hex',given:{a:q(a),s:v.s},targets:['H','h','P'],text:'Data je pravilna šestostrana piramida. Izračunaj visinu H, apotemu h i površinu piramide P.'}},
+    ()=>{const a=P([6,8,10]),H=P([4,6,12]),v=forward('quad',a,H);return{type:'quad',given:{a:q(a),s:v.s},targets:['h','H','M'],text:'Data je pravilna četvorostrana piramida. Izračunaj apotemu h, visinu H i omotač M.'}},
+    ()=>{const a=P([6,8,16]),H=P([3,4,6]),v=forward('quad',a,H);return{type:'quad',given:{H:q(H),h:v.h},targets:['a','B','V'],text:'Data je pravilna četvorostrana piramida. Izračunaj osnovnu ivicu a, površinu baze B i zapreminu V.'}},
+    ()=>{const a=P([2,4,6]),H=P([3,5,7]),v=forward('hex',a,H);return{type:'hex',given:{H:q(H),s:v.s},targets:['a','B','V'],text:'Data je pravilna šestostrana piramida. Izračunaj osnovnu ivicu a, površinu baze B i zapreminu V.'}}
+  ];
+  const hard=[
+    ()=>{const a=P([6,10,12]),H=P([4,6,12]),v=forward('quad',a,H);return{type:'quad',given:{V:v.V,a:q(a)},targets:['H','h','s'],text:'Data je pravilna četvorostrana piramida. Poznate su njena zapremina i osnovna ivica. Izračunaj visinu H, apotemu h i bočnu ivicu s.'}},
+    ()=>{const a=P([6,12]),H=P([4,6,8]),v=forward('tri',a,H);return{type:'tri',given:{P:v.P,a:q(a)},targets:['h','H','s'],text:'Krov tornja ima oblik pravilne trostrane piramide. Za pokrivanje cele piramide (baza i omotač) utrošeno je P kvadratnih jedinica materijala, a osnovna ivica je a. Izračunaj apotemu h, visinu H i bočnu ivicu s.'}},
+    ()=>{const a=P([2,4,6]),H=P([3,5,6]),v=forward('hex',a,H);return{type:'hex',given:{M:v.M,a:q(a)},targets:['h','H','V'],text:'Šator ima oblik pravilne šestostrane piramide bez poda. Za platno omotača utrošeno je M kvadratnih jedinica, a osnovna ivica je a. Izračunaj apotemu h, visinu H i zapreminu V.'}},
+    ()=>{const a=P([6,8,10,16]),H=P([3,4,6]),v=forward('quad',a,H);return{type:'quad',given:{M:v.M,P:v.P},targets:['B','a','h','V'],text:'Data je pravilna četvorostrana piramida. Poznati su omotač i površina. Izračunaj površinu baze B, osnovnu ivicu a, apotemu h i zapreminu V.'}},
+    ()=>{const a=P([6,12]),H=P([2,3,5]),v=forward('tri',a,H);return{type:'tri',given:{V:v.V,H:q(H)},targets:['B','a','h'],text:'Data je pravilna trostrana piramida. Poznate su njena zapremina i visina. Izračunaj površinu baze B, osnovnu ivicu a i apotemu h.'}}
+  ];
+  const two=l=>{const i=Math.floor(rng()*l.length);let j=Math.floor(rng()*(l.length-1));if(j>=i)j++;return[l[i](),l[j]()]};
+  const finish=t=>{const r=solve(t.type,t.given);const sol=r.sols[0];
+    t.answers=Object.fromEntries(t.targets.map(k=>[k,sol.vals[k]]));
+    t.typeName=name(t.type);
+    const last=Math.max(...t.targets.map(k=>sol.steps.findIndex(s=>s.k===k)));
+    t.steps=sol.steps.slice(0,last<0?sol.steps.length:last+1);
+    return t};
+  return[
+    {title:'Osnovni nivo',sub:'Direktna primena formula i Pitagorine teoreme.',tasks:two(easy).map(finish)},
+    {title:'Srednji nivo',sub:'Zadaci u više koraka: bočna ivica, apotema, površina i zapremina.',tasks:two(mid).map(finish)},
+    {title:'Napredni nivo',sub:'Obrnuti i tekstualni zadaci: pronađi sve nepoznate elemente.',tasks:two(hard).map(finish)}
+  ]}
+// ==ENGINE-END==
+
+/* ---------- Interfejs ---------- */
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+const FIELDS={col1:[['a','Osnovna ivica'],['s','Bočna ivica'],['h','Apotema'],['H','Visina piramide']],
+              col2:[['B','Površina baze'],['O','Obim baze'],['M','Površina omotača'],['P','Površina piramide'],['V','Zapremina']]};
+for(const[col,list]of Object.entries(FIELDS))for(const[k,lab]of list){
+  $(col).insertAdjacentHTML('beforeend',`<div class="field" id="f-${k}">
+    <label class="flbl" for="in-${k}"><span>${lab}</span><em></em></label>
+    <div class="box"><b>${k}</b><input id="in-${k}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="—"><div class="show"></div></div>
+    <div class="ferr" role="alert"></div></div>`)}
+
+const state={type:'quad',sol:0,hover:null,result:null,az:null};
+let lastInput=null,histTimer=null;
+let history_=store.get('piramida-istorija',[]);
+
+function legendRows(T){return[
+  {id:'coral',f:'s² = h² + (a/2)²'},
+  {id:'teal',f:`h² = H² + (${T.r})²`},
+  {id:'amber',f:AMBER(T)}]}
+const CAPS={
+  tri:'U bazi: v = a√3/2 je visina jednakostraničnog trougla. Težište je deli na ⅓v = a√3/6 (do sredine ivice) i ⅔v = a√3/3 (do temena).',
+  quad:'U bazi: a/2 je pola pomerene osnovne ivice (duž kroz centar, paralelna ivici), a d/2 = a√2/2 je pola dijagonale kvadrata.',
+  hex:'U bazi: centar deli šestougao na šest jednakostraničnih trouglova, pa je do temena duž a, a do sredine ivice njihova visina v = a√3/2.'};
+function renderStatic(){
+  const T=TYPES[state.type];
+  $('formulas').innerHTML=`<span>P = B + M</span><span>M = O·h / 2</span><span>V = B·H / 3</span><span>${T.B}, ${T.O}</span>`;
+  $('skcap').textContent=CAPS[state.type];
+  $('legend').innerHTML=legendRows(T).map(r=>`<li data-t="${r.id}" tabindex="0"><i class="c-${r.id}"></i><span>${r.f}</span><span class="tag"></span></li>`).join('');
+  for(const li of $('legend').children){
+    const on=()=>{state.hover=li.dataset.t;updateLegend();drawNow()};
+    const off=()=>{state.hover=null;updateLegend();drawNow()};
+    li.addEventListener('mouseenter',on);li.addEventListener('mouseleave',off);
+    li.addEventListener('focus',on);li.addEventListener('blur',off)}
+}
+function currentSol(){const r=state.result;return r&&r.status==='ok'?r.sols[Math.min(state.sol,r.sols.length-1)]:null}
+function activeTris(){
+  if(state.hover)return new Set([state.hover]);
+  const s=currentSol();
+  return s&&s.used.size?s.used:new Set(['teal'])}
+function updateLegend(){
+  const a=activeTris();const sol=currentSol();
+  for(const li of $('legend').children){const id=li.dataset.t;
+    li.classList.toggle('on',a.has(id));
+    li.querySelector('.tag').textContent=sol&&sol.used.has(id)?'korišćeno':''}}
+
+function readGiven(){
+  const g={};let bad=false;
+  for(const k of KEYS){const inp=$('in-'+k),f=$('f-'+k),err=f.querySelector('.ferr');
+    const raw=inp.value.trim();f.classList.remove('err');err.textContent='';
+    if(!raw)continue;
+    try{const v=parseVal(raw);
+      if(!(v.v>0)){f.classList.add('err');err.textContent='Vrednost mora biti pozitivna.';bad=true;continue}
+      g[k]=v}
+    catch(e){f.classList.add('err');err.textContent='Ne razumem zapis. Primeri: 4√3, 4sqrt(3), 36+9√3, 5/2.';bad=true}}
+  return{g,bad}}
+
+function recalc(){
+  const{g,bad}=readGiven();
+  const r=bad?{status:'bad'}:solve(state.type,g);
+  state.result=r;
+  if(r.status==='ok'&&state.sol>=r.sols.length)state.sol=0;
+  const sol=currentSol();
+  const vals=sol?sol.vals:(r.status==='partial'?r.vals:{});
+  for(const k of KEYS){
+    const f=$('f-'+k),inp=$('in-'+k),show=f.querySelector('.show'),tag=f.querySelector('.flbl em');
+    const isGiven=!!g[k]&&!!inp.value.trim();
+    const v=isGiven?g[k]:vals[k];
+    f.classList.toggle('given',isGiven);
+    f.classList.toggle('done',!isGiven&&!!v);
+    tag.textContent=!isGiven&&v?(v.approx?'približno':'izračunato'):'';
+    show.innerHTML=v?v.html():'';
+    show.title=v?v.text():'';
+    show.style.fontSize='';
+    inp.classList.toggle('covered',!!v);
+    inp.placeholder=v?'':(document.activeElement===inp?'npr. 4√3':'—');
+    fit(show)}
+  renderStatus(r,sol);
+  renderSteps(sol,r);
+  updateLegend();
+  targetShape(vals);
+  scheduleHistory(r,g,sol);
+}
+function fit(el){let s=17;while(el.scrollWidth>el.clientWidth&&s>10.5){s-=.5;el.style.fontSize=s+'px'}}
+function renderStatus(r,sol){
+  const el=$('status');el.hidden=true;el.className='status';el.innerHTML='';
+  const msg=m=>{el.textContent=m;el.hidden=false};
+  if(r.status==='invalid'||r.status==='conflict'){msg(r.msg);el.classList.add('bad');return}
+  if(r.status==='need'||r.status==='partial'){msg(r.msg);return}
+  if(r.status==='ok'){
+    if(r.sols.length>1){
+      el.hidden=false;
+      el.innerHTML=`Ovi podaci daju ${r.sols.length} različite piramide. Izaberite koju prikazujete:<div class="choice">${r.sols.map((s,i)=>`<button type="button" class="btn small" aria-pressed="${i===state.sol}" data-i="${i}">a = ${s.vals.a.html()}</button>`).join('')}</div>`;
+      el.querySelectorAll('button').forEach(b=>b.onclick=()=>{state.sol=+b.dataset.i;recalc()})}
+    if(sol&&sol.approx){
+      const n=document.createElement('div');
+      n.textContent='Ova kombinacija podataka vodi na kubnu jednačinu čije rešenje nema zapis sa kvadratnim korenima, pa je rezultat približan (≈).';
+      if(el.hidden){el.hidden=false;el.textContent=n.textContent}else{n.style.marginTop='8px';el.append(n)}}}}
+function stepHTML(s){
+  const seen=new Set();
+  const parts=s.res.filter(([k,v])=>{const id=v.key+k;if(seen.has(id))return false;seen.add(id);return true})
+    .map(([k,v])=>`${k} = ${v.html()}`).join(', ');
+  return`<li><code>${s.f}</code><span class="arrow">→</span><span class="res">${parts}</span></li>`}
+function renderSteps(sol){
+  $('stepsWrap').hidden=!sol;
+  $('steps').innerHTML=sol?sol.steps.map(stepHTML).join(''):''}
+
+function scheduleHistory(r,g,sol){
+  clearTimeout(histTimer);
+  if(!sol)return;
+  histTimer=setTimeout(()=>{
+    const row={type:TYPES[state.type].short,cells:{}};
+    for(const k of KEYS)row.cells[k]={h:sol.vals[k].html(),g:!!g[k]};
+    const sig=JSON.stringify(row);
+    if(history_.length&&JSON.stringify(history_[0])===sig)return;
+    history_=[row,...history_].slice(0,10);store.set('piramida-istorija',history_);renderHistory()},900)}
+function renderHistory(){
+  $('hist').innerHTML=history_.length?history_.map(r=>`<tr><td>${r.type}</td>${KEYS.map(k=>{const c=r.cells[k];return`<td class="${c.g?'g':'d'}">${c.h}</td>`}).join('')}</tr>`).join('')
+    :'<tr><td colspan="10" class="empty">Još nema proračuna.</td></tr>'}
+
+/* ---------- Skica ---------- */
+const SVGNS='http://www.w3.org/2000/svg';
+const shape={ratio:1.25,size:.75,tRatio:1.25,tSize:.75};
+const DEFAULT_AZ={tri:-.42,quad:.38,hex:.3};
+const OFFSET={tri:Math.PI/2,quad:Math.PI/4,hex:0};
+const PHI=.34;
+let anim=null;
+function targetShape(vals){
+  let ratio=1.25,L=0,clamped=false;
+  const a=vals.a?vals.a.v:null,H=vals.H?vals.H.v:null;
+  if(a&&H){ratio=H/a;L=Math.max(a,H)}else if(a){L=a}
+  if(ratio>3.2){ratio=3.2;clamped=true}
+  if(ratio<.22){ratio=.22;clamped=true}
+  $('sknote').hidden=!clamped;
+  shape.tRatio=ratio;
+  shape.tSize=L?.64+.36*(1-1/(1+L/8)):.8;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){shape.ratio=shape.tRatio;shape.size=shape.tSize;drawNow();return}
+  if(!anim){const t0=performance.now();const r0=shape.ratio,s0=shape.size;
+    const go=t=>{const u=Math.min(1,(t-t0)/320),e=1-(1-u)*(1-u);
+      shape.ratio=r0+(shape.tRatio-r0)*e;shape.size=s0+(shape.tSize-s0)*e;drawNow();
+      if(u<1)anim=requestAnimationFrame(go);else{anim=null;if(Math.abs(shape.ratio-shape.tRatio)>1e-3)targetShape(vals)}};
+    anim=requestAnimationFrame(go)}}
+function drawNow(){
+  const type=state.type,T=TYPES[type],n=T.n;
+  const az=state.az??DEFAULT_AZ[type];
+  const a=1,H=shape.ratio;
+  const rad=type==='tri'?a/Math.sqrt(3):type==='quad'?a/Math.SQRT2:a;
+  const cz=Math.cos(az),sz=Math.sin(az),cp=Math.cos(PHI),sp=Math.sin(PHI);
+  const rot=p=>({x:p.x*cz-p.y*sz,y:p.x*sz+p.y*cz,z:p.z});
+  const V3=[];for(let i=0;i<n;i++){const t=OFFSET[type]+i*2*Math.PI/n;V3.push({x:rad*Math.cos(t),y:rad*Math.sin(t),z:0})}
+  const C3={x:0,y:0,z:0},T3={x:0,y:0,z:H};
+  const raw=p=>{const r=rot(p);return{x:r.x,y:-r.z*cp+r.y*sp}};
+  // uklapanje u okvir
+  const all=[...V3,T3].map(raw);
+  const xs=all.map(p=>p.x),ys=all.map(p=>p.y);
+  const W=640,HH=600,pad=70;
+  const fitS=Math.min((W-2*pad)/(Math.max(...xs)-Math.min(...xs)),(HH-2*pad)/(Math.max(...ys)-Math.min(...ys)));
+  const S=fitS*shape.size;
+  const mx=(Math.max(...xs)+Math.min(...xs))/2,my=(Math.max(...ys)+Math.min(...ys))/2;
+  const pr=p=>{const r=raw(p);return{x:W/2+(r.x-mx)*S,y:HH/2+(r.y-my)*S}};
+  // vidljivost strana
+  const faces=[];
+  for(let i=0;i<n;i++){const A=rot(V3[i]),B=rot(V3[(i+1)%n]),Tp=rot(T3);
+    const u={x:B.x-A.x,y:B.y-A.y,z:B.z-A.z},v={x:Tp.x-A.x,y:Tp.y-A.y,z:Tp.z-A.z};
+    let nx=u.y*v.z-u.z*v.y,ny=u.z*v.x-u.x*v.z,nz=u.x*v.y-u.y*v.x;
+    const mid={x:(A.x+B.x)/2,y:(A.y+B.y)/2};
+    if(nx*mid.x+ny*mid.y<0){nx=-nx;ny=-ny;nz=-nz}
+    faces.push((ny*cp+nz*sp)/Math.hypot(nx,ny,nz))}
+  // prednja bočna strana nosi apotemu
+  let fi=0;faces.forEach((d,i)=>{if(d>faces[fi])fi=i});
+  const A3=V3[fi],B3=V3[(fi+1)%n];
+  const M3={x:(A3.x+B3.x)/2,y:(A3.y+B3.y)/2,z:0};
+  const Vr3=pr(A3).x>pr(B3).x?A3:B3;
+  const L=(p,q2,cls)=>{const a1=pr(p),b1=pr(q2);return`<line class="${cls}" x1="${a1.x.toFixed(1)}" y1="${a1.y.toFixed(1)}" x2="${b1.x.toFixed(1)}" y2="${b1.y.toFixed(1)}"/>`};
+  let out='';
+  // baza: skrivene ivice
+  for(let i=0;i<n;i++)if(faces[i]<=0)out+=L(V3[i],V3[(i+1)%n],'e-hid');
+  for(let i=0;i<n;i++){const left=faces[(i-1+n)%n],right=faces[i];if(left<=0&&right<=0)out+=L(T3,V3[i],'e-hid')}
+  // pomoćne duži u bazi
+  if(type==='tri'){const opp=V3[(fi+2)%3];out+=L(opp,M3,'e-aux')}
+  if(type==='quad'){
+    out+=L(V3[0],V3[2],'e-aux')+L(V3[1],V3[3],'e-aux');
+    const dx=(B3.x-A3.x)/2,dy=(B3.y-A3.y)/2;
+    out+=L({x:-dx,y:-dy,z:0},{x:dx,y:dy,z:0},'e-aux')}
+  if(type==='hex'){for(let i=0;i<3;i++)out+=L(V3[i],V3[i+3],'e-aux')}
+  // Pitagorini trouglovi
+  const act=activeTris();
+  const triPts={coral:[T3,M3,Vr3],teal:[T3,C3,M3],amber:[T3,C3,Vr3]};
+  const raAt={coral:[M3,T3,Vr3],teal:[C3,T3,M3],amber:[C3,T3,Vr3]};
+  for(const id of['amber','coral','teal']){if(!act.has(id))continue;
+    const pts=triPts[id].map(pr).map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    out+=`<polygon class="tri t-${id}" points="${pts}"/>`;
+    const[c,p1,p2]=raAt[id];const nrm=(u,w)=>{const d=Math.hypot(w.x-u.x,w.y-u.y,w.z-u.z);return{x:(w.x-u.x)/d,y:(w.y-u.y)/d,z:(w.z-u.z)/d}};
+    const u1=nrm(c,p1),u2=nrm(c,p2),e=.075;
+    const m=(k1,k2)=>pr({x:c.x+u1.x*k1+u2.x*k2,y:c.y+u1.y*k1+u2.y*k2,z:c.z+u1.z*k1+u2.z*k2});
+    const a1=m(e,0),b1=m(e,e),c1=m(0,e);
+    out+=`<polyline class="ra ${id}" points="${a1.x},${a1.y} ${b1.x},${b1.y} ${c1.x},${c1.y}"/>`}
+  // osnovne linije H i h ako nisu istaknute
+  if(!act.has('teal')&&!act.has('amber'))out+=L(T3,C3,'e-h');
+  if(!act.has('teal')&&!act.has('coral'))out+=L(T3,M3,'e-h');
+  // vidljive ivice
+  for(let i=0;i<n;i++)if(faces[i]>0)out+=L(V3[i],V3[(i+1)%n],'e-solid');
+  for(let i=0;i<n;i++){const left=faces[(i-1+n)%n],right=faces[i];if(left>0||right>0)out+=L(T3,V3[i],'e-solid')}
+  // tačke
+  for(const p of[...V3,T3,C3,M3]){const c=pr(p);out+=`<circle class="dot" cx="${c.x}" cy="${c.y}" r="4.5"/>`}
+  // oznake
+  const pc=pr(C3),pt=pr(T3),pm=pr(M3),pv=pr(Vr3);
+  const lbl=(x,y,t,cls='')=>`<text class="lb ${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
+  const along=(p,w,t)=>({x:p.x+(w.x-p.x)*t,y:p.y+(w.y-p.y)*t});
+  const off=(p,w,t,d,ref)=>{const m=along(p,w,t);let nx=-(w.y-p.y),ny=w.x-p.x;const l=Math.hypot(nx,ny)||1;nx/=l;ny/=l;
+    if(((m.x-ref.x)*nx+(m.y-ref.y)*ny)<0){nx=-nx;ny=-ny}return{x:m.x+nx*d,y:m.y+ny*d}};
+  const ph=off(pt,pc,.68,15,pm);out+=lbl(ph.x,ph.y,'H',act.has('teal')?'teal':act.has('amber')?'amber':'');
+  const pa=off(pt,pm,.56,16,pc);out+=lbl(pa.x,pa.y,'h',act.has('teal')?'teal':act.has('coral')?'coral':'');
+  const ps=off(pt,pv,.5,18,pc);out+=lbl(ps.x,ps.y,'s',act.has('amber')||act.has('coral')?(act.has('amber')?'amber':'coral'):'');
+  const pae=off(pm,pv,.0,22,pc);out+=lbl(pae.x,pae.y,'a');
+  const rn={tri:['⅓v','⅔v'],quad:['a/2','d/2'],hex:['v','a']}[type];
+  const r1=off(pc,pm,.55,15,pv);out+=lbl(r1.x,r1.y,rn[0],'sm');
+  const r2=off(pc,pv,.6,15,pm);out+=lbl(r2.x,r2.y,rn[1],'sm');
+  $('sk').innerHTML=out;
+}
+// okretanje prevlačenjem
+(()=>{const sk=$('sk');let drag=null;
+  sk.addEventListener('pointerdown',e=>{drag={x:e.clientX,az:state.az??DEFAULT_AZ[state.type]};sk.setPointerCapture(e.pointerId)});
+  sk.addEventListener('pointermove',e=>{if(!drag)return;state.az=drag.az+(e.clientX-drag.x)*.012;drawNow()});
+  const end=()=>{drag=null};sk.addEventListener('pointerup',end);sk.addEventListener('pointercancel',end)})();
+
+/* ---------- Događaji ---------- */
+for(const k of KEYS){const inp=$('in-'+k);
+  inp.addEventListener('input',()=>{state.sol=0;recalc()});
+  inp.addEventListener('focus',()=>{lastInput=inp;if(inp.classList.contains('covered')===false||!inp.value)inp.placeholder='npr. 4√3'});
+  inp.addEventListener('blur',()=>recalc())}
+$('type').addEventListener('change',e=>{state.type=e.target.value;state.sol=0;state.az=null;renderStatic();recalc();drawNow()});
+$('reset').addEventListener('click',()=>{for(const k of KEYS)$('in-'+k).value='';state.sol=0;state.az=null;recalc();drawNow()});
+$('clearHist').addEventListener('click',()=>{history_=[];store.set('piramida-istorija',[]);renderHistory()});
+function insertRoot(inp){if(!inp)return;const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;
+  inp.value=inp.value.slice(0,s)+'√'+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1);inp.dispatchEvent(new Event('input',{bubbles:true}))}
+document.addEventListener('mousedown',e=>{if(e.target.closest('.rootkey'))e.preventDefault()});
+document.querySelector('.right .rootkey').addEventListener('click',()=>insertRoot(lastInput||$('in-a')));
+
+/* ---------- Vežbe ---------- */
+let testData=null,taskId=0;
+function renderTest(){
+  testData=makeTest();
+  $('levels').innerHTML=testData.map(lv=>`<div class="level"><h2>${lv.title}</h2><p>${lv.sub}</p>${lv.tasks.map((t,i)=>taskHTML(t,i)).join('')}</div>`).join('');
+  document.querySelectorAll('.task').forEach(el=>bindTask(el))}
+const taskById={};
+function taskHTML(t,i){const id='t'+(++taskId);taskById[id]=t;
+  return`<article class="card task" data-id="${id}">
+    <div class="tmeta"><b>Zadatak ${i+1}</b><span>${t.typeName}</span></div>
+    <p>${t.text}</p>
+    <div class="givens">${Object.entries(t.given).map(([k,v])=>`<span>${k} = ${v.html()}</span>`).join('')}</div>
+    <div class="answers">${t.targets.map(k=>`<div class="field ans" data-k="${k}"><div class="box"><b>${k}</b><input id="${id}-${k}" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="npr. 4√3" aria-label="Odgovor za ${k}"></div><div class="ansmsg"></div></div>`).join('')}</div>
+    <div class="acts">
+      <button type="button" class="btn primary check">Proveri rešenje</button>
+      <button type="button" class="btn toggle" disabled>Postupak: uneto 0 od 2</button>
+      <button type="button" class="btn rootkey">Umetni √</button>
+    </div>
+    <ol class="steps" hidden></ol>
+  </article>`}
+const STEPS_UNLOCK=2; // koliko unetih odgovora (tačnih ili ne) otključava postupak
+function isAnswer(raw){try{return !!raw.trim()&&parseVal(raw).v>0}catch{return false}}
+function bindTask(el){const t=taskById[el.dataset.id];let last=null;
+  const toggle=el.querySelector('.toggle'),inputs=[...el.querySelectorAll('input')];
+  const refreshLock=()=>{
+    if(!toggle.disabled)return;
+    const n=inputs.filter(i=>isAnswer(i.value)).length;
+    if(n>=STEPS_UNLOCK){ // koraci ulaze u stranicu tek kada se otključaju
+      el.querySelector('.steps').innerHTML=t.steps.map(stepHTML).join('');
+      toggle.disabled=false;toggle.textContent='Prikaži postupak'}
+    else toggle.textContent=`Postupak: uneto ${n} od ${STEPS_UNLOCK}`};
+  inputs.forEach(i=>{i.addEventListener('focus',()=>{last=i});i.addEventListener('input',refreshLock)});
+  el.querySelector('.rootkey').addEventListener('click',()=>insertRoot(last||el.querySelector('input')));
+  el.querySelector('.toggle').addEventListener('click',e=>{const s=el.querySelector('.steps');s.hidden=!s.hidden;e.target.textContent=s.hidden?'Prikaži postupak':'Sakrij postupak'});
+  el.querySelector('.check').addEventListener('click',()=>{
+    el.querySelectorAll('.ans').forEach(a=>{const k=a.dataset.k,raw=a.querySelector('input').value.trim(),msg=a.querySelector('.ansmsg');
+      a.classList.remove('ok','no');
+      if(!raw){a.classList.add('no');msg.textContent='Unesi odgovor, npr. 4√3.';return}
+      let v;try{v=parseVal(raw)}catch{a.classList.add('no');msg.textContent='Ne razumem zapis. Primer: 4√3 ili 36+9√3.';return}
+      const right=t.answers[k];
+      if(v.sub(right).zero){a.classList.add('ok');msg.textContent='Tačno!'}
+      else if(/[.,]/.test(raw)&&Math.abs(v.v-right.v)<.02*Math.max(1,right.v)){a.classList.add('no');msg.textContent='Blizu, ali treba tačan oblik sa korenom, bez zaokruživanja.'}
+      else{a.classList.add('no');msg.textContent=toggle.disabled?'Nije tačno. Pokušaj ponovo.':'Nije tačno. Pokušaj ponovo ili pogledaj postupak.'}})})}
+$('newTest').addEventListener('click',renderTest);
+
+function route(){const test=location.hash==='#vezbe';
+  $('view-calc').style.display=test?'none':'flex';$('view-test').style.display=test?'flex':'none';
+  $('tab-calc').setAttribute('aria-selected',String(!test));$('tab-test').setAttribute('aria-selected',String(test));
+  if(test&&!testData)renderTest()}
+$('tab-calc').addEventListener('click',()=>{location.hash='kalkulator';route()});
+$('tab-test').addEventListener('click',()=>{location.hash='vezbe';route()});
+addEventListener('hashchange',route);
+
+renderStatic();renderHistory();recalc();drawNow();route();
+</script>
+
+</body>
+</html>
